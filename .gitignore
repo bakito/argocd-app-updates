@@ -1,3 +1,6 @@
 .idea
 argocd-app-updates
 main
+bin
+dist
+coverage.out

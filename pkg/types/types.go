@@ -36,8 +36,7 @@ type Application struct {
 		} `json:"destination"`
 		Project    string `json:"project"`
 		SyncPolicy struct {
-			Automated *struct {
-			} `json:"automated"`
+			Automated *struct{} `json:"automated"`
 		} `json:"syncPolicy"`
 	} `json:"spec"`
 	Status struct {
