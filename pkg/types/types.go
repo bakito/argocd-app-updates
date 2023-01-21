@@ -56,7 +56,9 @@ func (l ApplicationList) Helm() []Application {
 
 	for i := range l.Items {
 		app := l.Items[i]
-		helmApps = append(helmApps, app)
+		if app.Status.SourceType == "Helm" {
+			helmApps = append(helmApps, app)
+		}
 	}
 
 	return helmApps

@@ -1,22 +1,31 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"net/url"
+	"os"
+	"strings"
 
 	"github.com/bakito/argocd-app-updates/pkg/types"
+	"github.com/fatih/color"
 	"github.com/go-resty/resty/v2"
+	"github.com/liggitt/tabwriter"
 	"golang.org/x/mod/semver"
 )
 
 const (
-	urlApplications = "http://localhost:8080/api/v1/applications"
-	urlHelmCharts   = "https://argocd.k3s.bakito.net/api/v1/repositories/%s/helmcharts"
+	urlApplications = "/api/v1/applications"
+	urlHelmCharts   = "/api/v1/repositories/%s/helmcharts"
 )
 
 func main() {
-	client := resty.New()
+	var server string
+	flag.StringVar(&server, "server", "http://localhost:8080", "Define the argo-cd target server")
+	flag.Parse()
+
+	client := resty.New().SetBaseURL(server)
 
 	apps, err := readApplications(client)
 	if err != nil {
@@ -24,6 +33,8 @@ func main() {
 	}
 
 	helmApps := apps.Helm()
+	w := tabwriter.NewWriter(os.Stdout, 6, 4, 3, ' ', tabwriter.RememberWidths)
+	_, _ = fmt.Fprintln(w, strings.Join([]string{"PROJECT", "NAME", "SOURCE TYPE", "CHART", "TARGET REVISION", "NEWEST VERSION"}, "\t"))
 
 	charts := make(map[string]*types.HelmCharts)
 
@@ -32,11 +43,25 @@ func main() {
 		if err != nil {
 			log.Fatal(err)
 		}
-		if semver.Compare("v"+app.Spec.Source.TargetRevision, "v"+hc.Versions[0]) < 0 {
-			log.Printf("Update available for %q: %s -> %s", app.Metadata.Name, app.Spec.Source.TargetRevision, hc.Versions[0])
+		updateAvailable := semver.Compare("v"+app.Spec.Source.TargetRevision, "v"+hc.Versions[0]) < 0
+
+		var version string
+		if updateAvailable {
+			version = color.New(color.FgYellow).Sprint(hc.Versions[0])
+		} else {
+			version = color.New(color.FgGreen).Sprint(hc.Versions[0])
 		}
 
+		_, _ = fmt.Fprintln(w, strings.Join([]string{
+			app.Spec.Project,
+			app.Metadata.Name,
+			app.Status.SourceType,
+			app.Spec.Source.Chart,
+			app.Spec.Source.TargetRevision,
+			version,
+		}, "\t"))
 	}
+	_ = w.Flush()
 }
 
 func getHelmCharts(client *resty.Client, app types.Application, charts map[string]*types.HelmCharts) (*types.HelmChart, error) {
