@@ -34,7 +34,11 @@ type Application struct {
 			Namespace string `json:"namespace"`
 			Name      string `json:"name"`
 		} `json:"destination"`
-		Project string `json:"project"`
+		Project    string `json:"project"`
+		SyncPolicy struct {
+			Automated *struct {
+			} `json:"automated"`
+		} `json:"syncPolicy"`
 	} `json:"spec"`
 	Status struct {
 		Health struct {
@@ -45,6 +49,9 @@ type Application struct {
 			ExternalURLs []string `json:"externalURLs"`
 			Images       []string `json:"images"`
 		} `json:"summary"`
+		Sync struct {
+			Status string `json:"status"`
+		} `json:"sync"`
 	} `json:"status"`
 }
 type ApplicationList struct {
