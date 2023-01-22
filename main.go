@@ -32,6 +32,7 @@ func main() {
 		ver            bool
 		port           int
 		cronExpression string
+		project        string
 	)
 
 	flag.StringVar(&argoURL, "argo-server", "http://localhost:8080", "Define the argo-cd target server URL")
@@ -39,6 +40,7 @@ func main() {
 	flag.BoolVar(&ver, "version", false, "Print the version")
 	flag.IntVar(&port, "port", 8080, "Server port")
 	flag.StringVar(&cronExpression, "cron", "*/15 * * * *", "The cron expression to sync the apps in server mode")
+	flag.StringVar(&project, "project", "", "Optional define the project to search applications in CLI mode")
 	flag.Parse()
 
 	if ver {
@@ -80,17 +82,17 @@ func main() {
 		"AUTO SYNC",
 		"SOURCE TYPE",
 		"CHART",
-		"TARGET REVISION",
+		"VERSION",
 		"NEWEST VERSION",
 	}, "\t"))
 
-	apps := cl.Applications()
+	apps := cl.Applications().WithSourceType("Helm", project)
 	for _, app := range apps {
 		var version string
-		if app.NewestVersion == "" {
+		if app.NewestVersion != "" {
 			version = colorYellow.Sprint(app.NewestVersion)
 		} else {
-			version = colorGreen.Sprint(app.NewestVersion)
+			version = colorGreen.Sprint(app.Version)
 		}
 
 		_, _ = fmt.Fprintln(w, strings.Join([]string{
