@@ -77,8 +77,8 @@
                                             {{- if $app.Automated }}
                                             <i title="Auto-Sync Enabled" class="fa fa-arrows-rotate colorHealthy"></i>
                                             {{- end }}
-                                            {{- if $app.NewestVersion }}
-                                            <i title="Update Available {{ $app.NewestVersion }}" class="fa fa-download colorOutOfSync"></i>
+                                            {{- if $app.LatestVersion }}
+                                            <i title="Update Available {{ $app.LatestVersion }}" class="fa fa-download colorOutOfSync"></i>
                                             {{- end }}
                                         </div>
                                     </div>
@@ -99,11 +99,11 @@
                                         {{ $app.Version }}
                                     </div>
                                 </div>
-                                {{- if $app.NewestVersion }}
+                                {{- if $app.LatestVersion }}
                                 <div class="row">
-                                    <div class="col-6 colorOutOfSync">Newest Version:</div>
+                                    <div class="col-6 colorOutOfSync">Latest:</div>
                                     <div class="col-6 colorOutOfSync" style="text-align: right">
-                                        {{ $app.NewestVersion }}
+                                        {{ $app.LatestVersion }}
                                     </div>
                                 </div>
                                 {{- end }}

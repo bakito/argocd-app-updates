@@ -90,7 +90,7 @@ func (c *client) Update() error {
 
 		if hc != nil && len(hc.Versions) != 0 {
 			if semver.Compare("v"+app.Spec.Source.TargetRevision, "v"+hc.Versions[0]) < 0 {
-				myApp.NewestVersion = hc.Versions[0]
+				myApp.LatestVersion = hc.Versions[0]
 			}
 		}
 		myApps = append(myApps, myApp)

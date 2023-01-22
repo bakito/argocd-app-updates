@@ -29,13 +29,13 @@ func Render(apps types.Applications) {
 		"AUTO SYNC",
 		"CHART",
 		"VERSION",
-		"NEWEST VERSION",
+		"LATEST",
 	}, "\t"))
 
 	for _, app := range apps {
 		var version string
-		if app.NewestVersion != "" {
-			version = colorYellow.Sprint(app.NewestVersion)
+		if app.LatestVersion != "" {
+			version = colorYellow.Sprint(app.LatestVersion)
 		} else {
 			version = colorGreen.Sprint(app.Version)
 		}

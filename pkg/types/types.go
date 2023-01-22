@@ -70,7 +70,7 @@ type Applications []Application
 func (a Applications) WithUpdates(project string) Applications {
 	filtered := Applications{}
 	for _, app := range a.ForProject(project) {
-		if app.NewestVersion != "" {
+		if app.LatestVersion != "" {
 			filtered = append(filtered, app)
 		}
 	}
@@ -106,7 +106,7 @@ type Application struct {
 	Path          string
 	Chart         string
 	Version       string
-	NewestVersion string
+	LatestVersion string
 
 	HealthStatus string
 	SyncStatus   string
