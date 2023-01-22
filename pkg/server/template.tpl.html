@@ -1,0 +1,109 @@
+<html>
+    <head>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+        <link rel="stylesheet" href="https://bootswatch.com/5/darkly/bootstrap.min.css" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+        <link rel="stylesheet" href="styles.css">
+        <link rel="icon" type="image/png" href="favicon.png" sizes="32x32"/>
+        <title>Argo CD Application Updates</title>
+    </head>
+    <body>
+        <div class="container-fluid">
+            {{- if not .apps }}
+            <div class="row" style="padding-top: 15px">
+                <div class="col-sm-4"></div>
+                <div class="col-sm-4">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            {{- if .updates }}
+                            <h5 class="card-title text-center colorHealthy">
+                                All Applications are up to date <i class="fa-solid fa-thumbs-up"></i>
+                            </h5>
+                            {{- else }}
+                            <h5 class="card-title text-center colorOutOfSync">
+                                No Applications found <i class="fa-solid fa-magnifying-glass"></i>
+                            </h5>
+                            {{- end }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {{- end }}
+            {{- range $i,$app := .apps }}
+            {{- if eq (mod $i 4) 0 }}
+            <div class="row" style="padding-top: 15px">
+             {{- end }}
+                <div class="col-sm-3">
+                    <div class="card h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <img src="{{ $app.SourceType | lower }}.png"
+                                     width="24px" height="24px" alt="Card image">
+                                {{ $app.Name }}
+                            </h5>
+                            <h6 class="card-subtitle text-muted">
+                                <div class="container-fluid">
+                                    <div class="row">
+                                        <div class="col-9">{{ $app.Project }}</div>
+                                        <div class="col-3" style="text-align: right">
+                                            <i title="{{ $app.HealthStatus }}" class="fa {{ healthIcon $app.HealthStatus }} color{{ $app.HealthStatus }}"></i>
+                                            <i title="Synced" class="fa {{ syncIcon $app.SyncStatus }} color{{ $app.SyncStatus }}"></i>
+                                            {{- if $app.Automated }}
+                                            <i title="Auto-Sync Enabled" class="fa fa-arrows-rotate colorHealthy"></i>
+                                            {{- end }}
+                                            {{- if $app.NewestVersion }}
+                                            <i title="Update Available {{ $app.NewestVersion }}" class="fa fa-download colorOutOfSync"></i>
+                                            {{- end }}
+                                        </div>
+                                    </div>
+                                </div>
+                            </h6>
+                            <p class="card-text">
+                            <div class="container">
+                                {{- if $app.Chart }}
+                                <div class="row">
+                                    <div class="col-3">Chart:</div>
+                                    <div class="col-9" style="text-align: right">
+                                        {{ $app.Chart }}
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-6">Version:</div>
+                                    <div class="col-6" style="text-align: right">
+                                        {{ $app.Version }}
+                                    </div>
+                                </div>
+                                {{- if $app.NewestVersion }}
+                                <div class="row">
+                                    <div class="col-6 colorOutOfSync">Newest Version:</div>
+                                    <div class="col-6 colorOutOfSync" style="text-align: right">
+                                        {{ $app.NewestVersion }}
+                                    </div>
+                                </div>
+                                {{- end }}
+                                {{- else }}
+                                <div class="row">
+                                    <div class="col-3">Repository:</div>
+                                    <div class="col-9" style="text-align: right">
+                                        {{ $app.Repo }}
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-3">Revision:</div>
+                                    <div class="col-9" style="text-align: right">
+                                        {{ $app.Revision }}
+                                    </div>
+                                </div>
+                                {{- end }}
+                            </div>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            {{- if eq (mod $i 4) 3 }}
+            </div>
+            {{- end }}
+            {{- end }}
+        </div>
+    </body>
+</html>

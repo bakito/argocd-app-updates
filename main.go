@@ -4,20 +4,16 @@ import (
 	"flag"
 	"fmt"
 	"log"
-	"net/url"
 	"os"
 	"strings"
 
+	"github.com/bakito/argocd-app-updates/pkg/client"
+	ss "github.com/bakito/argocd-app-updates/pkg/server"
 	"github.com/bakito/argocd-app-updates/pkg/types"
+	"github.com/bakito/argocd-app-updates/version"
 	"github.com/fatih/color"
-	"github.com/go-resty/resty/v2"
 	"github.com/juju/ansiterm/tabwriter"
-	"golang.org/x/mod/semver"
-)
-
-const (
-	urlApplications = "/api/v1/applications"
-	urlHelmCharts   = "/api/v1/repositories/%s/helmcharts"
+	"github.com/robfig/cron/v3"
 )
 
 var (
@@ -30,19 +26,51 @@ var (
 )
 
 func main() {
-	var server string
+	var (
+		argoURL        string
+		serverMode     bool
+		ver            bool
+		port           int
+		cronExpression string
+	)
 
-	flag.StringVar(&server, "server", "http://localhost:8080", "Define the argo-cd target server")
+	flag.StringVar(&argoURL, "argo-server", "http://localhost:8080", "Define the argo-cd target server URL")
+	flag.BoolVar(&serverMode, "server", false, "run as server")
+	flag.BoolVar(&ver, "version", false, "Print the version")
+	flag.IntVar(&port, "port", 8080, "Server port")
+	flag.StringVar(&cronExpression, "cron", "*/15 * * * *", "The cron expression to sync the apps in server mode")
 	flag.Parse()
 
-	client := resty.New().SetBaseURL(server)
+	if ver {
+		fmt.Printf("argocd-app-updates %s\n", version.Version)
+		return
+	}
 
-	apps, err := readApplications(client)
-	if err != nil {
+	cl := client.NewClient(argoURL)
+	if err := cl.Update(); err != nil {
 		log.Fatal(err)
 	}
 
-	helmApps := apps.Helm()
+	if serverMode {
+
+		log.Printf("Starting argocd-app-updates %q", version.Version)
+		log.Printf("Using cron expression %q to update applications", cronExpression)
+		c := cron.New()
+		_, err := c.AddFunc(cronExpression, func() {
+			log.Printf("Updating applications")
+			if err := cl.Update(); err != nil {
+				log.Printf("Error during application update: %v", err)
+			}
+		})
+		c.Start()
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		log.Fatal(ss.Start(cl, port))
+		return
+	}
+
 	w := tabwriter.NewWriter(os.Stdout, 6, 4, 3, ' ', 0)
 	_, _ = fmt.Fprintln(w, strings.Join([]string{
 		"PROJECT",
@@ -56,31 +84,24 @@ func main() {
 		"NEWEST VERSION",
 	}, "\t"))
 
-	charts := make(map[string]*types.HelmCharts)
-
-	for _, app := range helmApps {
-		hc, err := getHelmCharts(client, app, charts)
-		if err != nil {
-			log.Fatal(err)
-		}
-		updateAvailable := semver.Compare("v"+app.Spec.Source.TargetRevision, "v"+hc.Versions[0]) < 0
-
+	apps := cl.Applications()
+	for _, app := range apps {
 		var version string
-		if updateAvailable {
-			version = colorYellow.Sprint(hc.Versions[0])
+		if app.NewestVersion == "" {
+			version = colorYellow.Sprint(app.NewestVersion)
 		} else {
-			version = colorGreen.Sprint(hc.Versions[0])
+			version = colorGreen.Sprint(app.NewestVersion)
 		}
 
 		_, _ = fmt.Fprintln(w, strings.Join([]string{
-			app.Spec.Project,
-			app.Metadata.Name,
+			app.Project,
+			app.Name,
 			healthStatus(app),
 			syncStatus(app),
 			autoSync(app),
-			app.Status.SourceType,
-			app.Spec.Source.Chart,
-			app.Spec.Source.TargetRevision,
+			app.SourceType,
+			app.Chart,
+			app.Revision,
 			version,
 		}, "\t"))
 	}
@@ -88,14 +109,14 @@ func main() {
 }
 
 func autoSync(app types.Application) string {
-	if app.Spec.SyncPolicy.Automated == nil {
+	if !app.Automated {
 		return ""
 	}
 	return colorHiCyan.Sprintf("%v", true)
 }
 
 func syncStatus(app types.Application) string {
-	syncStatus := app.Status.Sync.Status
+	syncStatus := app.SyncStatus
 	switch syncStatus {
 	case "Synced":
 		syncStatus = colorGreen.Sprint(syncStatus)
@@ -106,7 +127,7 @@ func syncStatus(app types.Application) string {
 }
 
 func healthStatus(app types.Application) string {
-	health := app.Status.Health.Status
+	health := app.HealthStatus
 	switch health {
 	case "Healthy":
 		health = colorGreen.Sprint(health)
@@ -120,23 +141,4 @@ func healthStatus(app types.Application) string {
 		health = colorMagenta.Sprint(health)
 	}
 	return health
-}
-
-func getHelmCharts(client *resty.Client, app types.Application, charts map[string]*types.HelmCharts) (*types.HelmChart, error) {
-	if hc, ok := charts[app.Spec.Source.RepoURL]; ok {
-		return hc.Chart(app.Spec.Source.Chart), nil
-	}
-	hc := &types.HelmCharts{}
-	_, err := client.R().SetResult(hc).Get(fmt.Sprintf(urlHelmCharts, url.QueryEscape(app.Spec.Source.RepoURL)))
-	if err != nil {
-		return nil, err
-	}
-	charts[app.Spec.Source.RepoURL] = hc
-	return hc.Chart(app.Spec.Source.Chart), err
-}
-
-func readApplications(client *resty.Client) (*types.ApplicationList, error) {
-	apps := &types.ApplicationList{}
-	_, err := client.R().SetResult(apps).Get(urlApplications)
-	return apps, err
 }

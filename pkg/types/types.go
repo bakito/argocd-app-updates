@@ -1,10 +1,10 @@
 package types
 
-type HelmCharts struct {
-	Items []HelmChart `json:"items"`
+type HelmChartsResponse struct {
+	Items []HelmChartResponse `json:"items"`
 }
 
-func (c HelmCharts) Chart(chart string) *HelmChart {
+func (c HelmChartsResponse) Chart(chart string) *HelmChartResponse {
 	for i := range c.Items {
 		hc := c.Items[i]
 		if hc.Name == chart {
@@ -14,12 +14,12 @@ func (c HelmCharts) Chart(chart string) *HelmChart {
 	return nil
 }
 
-type HelmChart struct {
+type HelmChartResponse struct {
 	Name     string   `json:"name"`
 	Versions []string `json:"versions"`
 }
 
-type Application struct {
+type ApplicationResponse struct {
 	Metadata struct {
 		Name      string `json:"name"`
 		Namespace string `json:"namespace"`
@@ -53,12 +53,12 @@ type Application struct {
 		} `json:"sync"`
 	} `json:"status"`
 }
-type ApplicationList struct {
-	Items []Application `json:"items"`
+type ApplicationListResponse struct {
+	Items []ApplicationResponse `json:"items"`
 }
 
-func (l ApplicationList) Helm() []Application {
-	var helmApps []Application
+func (l ApplicationListResponse) Helm() []ApplicationResponse {
+	var helmApps []ApplicationResponse
 
 	for i := range l.Items {
 		app := l.Items[i]
@@ -68,4 +68,52 @@ func (l ApplicationList) Helm() []Application {
 	}
 
 	return helmApps
+}
+
+type Applications []Application
+
+func (a Applications) WithUpdates(project string) Applications {
+	filtered := Applications{}
+	for _, app := range a.ForProject(project) {
+		if app.NewestVersion != "" {
+			filtered = append(filtered, app)
+		}
+	}
+	return filtered
+}
+
+func (a Applications) WithSourceType(sourceType string, project string) Applications {
+	filtered := Applications{}
+	for _, app := range a.ForProject(project) {
+		if app.SourceType == sourceType {
+			filtered = append(filtered, app)
+		}
+	}
+	return filtered
+}
+
+func (a Applications) ForProject(project string) Applications {
+	filtered := Applications{}
+	for _, app := range a {
+		if project == "" || app.Project == project {
+			filtered = append(filtered, app)
+		}
+	}
+	return filtered
+}
+
+type Application struct {
+	Name          string
+	Project       string
+	SourceType    string
+	RepoURL       string
+	Revision      string
+	Chart         string
+	Version       string
+	NewestVersion string
+
+	HealthStatus string
+	SyncStatus   string
+
+	Automated bool
 }
