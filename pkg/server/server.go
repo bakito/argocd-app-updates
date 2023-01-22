@@ -41,28 +41,32 @@ func Start(cl client.Client, port int) error {
 	}).Parse(pageTemplate)))
 	r.GET("/", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "index", gin.H{
-			"apps":    cl.Applications().WithUpdates(c.Query("project")),
-			"updates": true,
-			"url":     cl.URL(),
+			"apps":        cl.Applications().WithUpdates(c.Query("project")),
+			"updates":     true,
+			"url":         cl.URL(),
+			"titleSuffix": "Updates",
 		})
 	})
 	r.GET("/all", func(c *gin.Context) {
 		apps := cl.Applications().ForProject(c.Query("project"))
 		c.HTML(http.StatusOK, "index", gin.H{
-			"apps": apps,
-			"url":  cl.URL(),
+			"apps":        apps,
+			"url":         cl.URL(),
+			"titleSuffix": "All",
 		})
 	})
 	r.GET("/helm", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "index", gin.H{
-			"apps": cl.Applications().WithRepoType(types.RepoTypeHelm, c.Query("project")),
-			"url":  cl.URL(),
+			"apps":        cl.Applications().WithRepoType(types.RepoTypeHelm, c.Query("project")),
+			"url":         cl.URL(),
+			"titleSuffix": types.RepoTypeHelm,
 		})
 	})
 	r.GET("/git", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "index", gin.H{
-			"apps": cl.Applications().WithRepoType(types.RepoTypeGit, c.Query("project")),
-			"url":  cl.URL(),
+			"apps":        cl.Applications().WithRepoType(types.RepoTypeGit, c.Query("project")),
+			"url":         cl.URL(),
+			"titleSuffix": types.RepoTypeGit,
 		})
 	})
 
