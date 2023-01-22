@@ -42,21 +42,25 @@ func Start(cl client.Client, port int) error {
 		c.HTML(http.StatusOK, "index", gin.H{
 			"apps":    cl.Applications().WithUpdates(c.Query("project")),
 			"updates": true,
+			"url":     cl.URL(),
 		})
 	})
 	r.GET("/all", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "index", gin.H{
 			"apps": cl.Applications().ForProject(c.Query("project")),
+			"url":  cl.URL(),
 		})
 	})
 	r.GET("/helm", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "index", gin.H{
 			"apps": cl.Applications().WithSourceType("Helm", c.Query("project")),
+			"url":  cl.URL(),
 		})
 	})
 	r.GET("/git", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "index", gin.H{
 			"apps": cl.Applications().WithSourceType("Git", c.Query("project")),
+			"url":  cl.URL(),
 		})
 	})
 
