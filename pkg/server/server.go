@@ -25,8 +25,6 @@ var (
 
 	//go:embed favicon.png
 	favicon []byte
-	//go:embed styles.css
-	styles string
 )
 
 func Start(cl client.Client, port int) error {
@@ -78,9 +76,6 @@ func Start(cl client.Client, port int) error {
 	})
 	r.GET("/favicon.png", func(c *gin.Context) {
 		c.Data(http.StatusOK, "image/png", favicon)
-	})
-	r.GET("/styles.css", func(c *gin.Context) {
-		c.String(http.StatusOK, styles)
 	})
 	log.Printf("Starting server on port %d", port)
 	return r.Run(fmt.Sprintf(":%d", port))

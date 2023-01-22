@@ -3,9 +3,35 @@
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
         <link rel="stylesheet" href="https://bootswatch.com/5/darkly/bootstrap.min.css" crossorigin="anonymous">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-        <link rel="stylesheet" href="styles.css">
         <link rel="icon" type="image/png" href="favicon.png" sizes="32x32"/>
         <title>Argo CD Application - {{ .titleSuffix }}</title>
+        <style>
+            .colorDegraded {
+                color: rgb(233, 109, 118);
+            }
+            .colorProgressing {
+                color: rgb(13, 173, 234);
+            }
+            .colorHealthy {
+                color: rgb(24, 190, 148);
+            }
+            .colorSuspended {
+                color: rgb(118, 111, 148);
+            }
+            .colorMissing {
+                color: rgb(244, 192, 48);
+            }
+            .colorUnknown {
+                color: rgb(204, 214, 221);
+            }
+            .colorSynced {
+                color: rgb(24, 190, 148);
+            }
+            .colorOutOfSync {
+                color: rgb(244, 192, 48);
+            }
+
+        </style>
     </head>
     <body>
         <div class="container-fluid">
