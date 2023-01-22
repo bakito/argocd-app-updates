@@ -25,5 +25,6 @@ LABEL maintainer="bakito <github@bakito.ch>"
 EXPOSE 8080
 USER 1001
 ENTRYPOINT ["/go/bin/argocd-app-updates", "--server" ]
+CMD ["--argo-server", "http://argocd-server:80"]
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 COPY --from=builder /build/argocd-app-updates /go/bin/argocd-app-updates
