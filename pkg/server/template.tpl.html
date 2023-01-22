@@ -37,7 +37,7 @@
                     <div class="card h-100">
                         <div class="card-body">
                             <h5 class="card-title">
-                                <img src="{{ $app.SourceType | lower }}.png"
+                                <img src="{{ $app.RepoType | lower }}.png"
                                      width="24px" height="24px" alt="Card image">
                                 {{ $app.Name }}
                             </h5>
@@ -85,13 +85,19 @@
                                 <div class="row">
                                     <div class="col-3">Repository:</div>
                                     <div class="col-9" style="text-align: right">
-                                        {{ $app.Repo }}
+                                        {{ $app.RepoURL }}
                                     </div>
                                 </div>
                                 <div class="row">
                                     <div class="col-3">Revision:</div>
                                     <div class="col-9" style="text-align: right">
                                         {{ $app.Revision }}
+                                    </div>
+                                </div>
+                                <div class="row">
+                                    <div class="col-3">Path:</div>
+                                    <div class="col-9" style="text-align: right">
+                                        {{ $app.Path }}
                                     </div>
                                 </div>
                                 {{- end }}

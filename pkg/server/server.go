@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/bakito/argocd-app-updates/pkg/client"
+	"github.com/bakito/argocd-app-updates/pkg/types"
 	"github.com/gin-gonic/gin"
 )
 
@@ -34,7 +35,7 @@ func Start(cl client.Client, port int) error {
 	r.Use(gin.Recovery())
 	r.SetHTMLTemplate(template.Must(template.New("index").Funcs(map[string]any{
 		"mod":        func(a, b int) int { return a % b },
-		"lower":      func(val string) string { return strings.ToLower(val) },
+		"lower":      func(val interface{}) string { return strings.ToLower(fmt.Sprintf("%v", val)) },
 		"healthIcon": healthIcon,
 		"syncIcon":   syncIcon,
 	}).Parse(pageTemplate)))
@@ -46,20 +47,21 @@ func Start(cl client.Client, port int) error {
 		})
 	})
 	r.GET("/all", func(c *gin.Context) {
+		apps := cl.Applications().ForProject(c.Query("project"))
 		c.HTML(http.StatusOK, "index", gin.H{
-			"apps": cl.Applications().ForProject(c.Query("project")),
+			"apps": apps,
 			"url":  cl.URL(),
 		})
 	})
 	r.GET("/helm", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "index", gin.H{
-			"apps": cl.Applications().WithSourceType("Helm", c.Query("project")),
+			"apps": cl.Applications().WithRepoType(types.RepoTypeHelm, c.Query("project")),
 			"url":  cl.URL(),
 		})
 	})
 	r.GET("/git", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "index", gin.H{
-			"apps": cl.Applications().WithSourceType("Git", c.Query("project")),
+			"apps": cl.Applications().WithRepoType(types.RepoTypeGit, c.Query("project")),
 			"url":  cl.URL(),
 		})
 	})

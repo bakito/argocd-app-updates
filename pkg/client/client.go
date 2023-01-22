@@ -60,31 +60,38 @@ func (c *client) Update() error {
 	}
 
 	charts := make(map[string]*types.HelmChartsResponse)
-	helmApps := apps.Helm()
 
 	var myApps types.Applications
 
-	for _, app := range helmApps {
-		hc, err := c.getHelmCharts(app, charts)
-		if err != nil {
-			return err
-		}
+	for _, app := range apps.Items {
 		myApp := types.Application{
 			Name:         app.Metadata.Name,
 			Project:      app.Spec.Project,
-			SourceType:   app.Status.SourceType,
 			RepoURL:      app.Spec.Source.RepoURL,
 			Revision:     app.Spec.Source.TargetRevision,
+			Path:         app.Spec.Source.Path,
 			Chart:        app.Spec.Source.Chart,
 			Version:      app.Spec.Source.TargetRevision,
 			HealthStatus: app.Status.Health.Status,
 			SyncStatus:   app.Status.Sync.Status,
 			Automated:    app.Spec.SyncPolicy.Automated != nil,
 		}
-		updateAvailable := semver.Compare("v"+app.Spec.Source.TargetRevision, "v"+hc.Versions[0]) < 0
 
-		if updateAvailable {
-			myApp.NewestVersion = hc.Versions[0]
+		if app.Spec.Source.Path != "" {
+			myApp.RepoType = types.RepoTypeGit
+		} else {
+			myApp.RepoType = types.RepoTypeHelm
+		}
+
+		hc, err := c.getHelmCharts(app, charts)
+		if err != nil {
+			return err
+		}
+
+		if hc != nil && len(hc.Versions) != 0 {
+			if semver.Compare("v"+app.Spec.Source.TargetRevision, "v"+hc.Versions[0]) < 0 {
+				myApp.NewestVersion = hc.Versions[0]
+			}
 		}
 		myApps = append(myApps, myApp)
 	}

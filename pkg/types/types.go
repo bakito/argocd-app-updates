@@ -1,5 +1,12 @@
 package types
 
+type RepoType string
+
+const (
+	RepoTypeHelm RepoType = "Helm"
+	RepoTypeGit  RepoType = "Git"
+)
+
 type HelmChartsResponse struct {
 	Items []HelmChartResponse `json:"items"`
 }
@@ -29,6 +36,7 @@ type ApplicationResponse struct {
 			RepoURL        string `json:"repoURL"`
 			TargetRevision string `json:"targetRevision"`
 			Chart          string `json:"chart"`
+			Path           string `json:"path"`
 		} `json:"source"`
 		Destination struct {
 			Namespace string `json:"namespace"`
@@ -57,19 +65,6 @@ type ApplicationListResponse struct {
 	Items []ApplicationResponse `json:"items"`
 }
 
-func (l ApplicationListResponse) Helm() []ApplicationResponse {
-	var helmApps []ApplicationResponse
-
-	for i := range l.Items {
-		app := l.Items[i]
-		if app.Status.SourceType == "Helm" {
-			helmApps = append(helmApps, app)
-		}
-	}
-
-	return helmApps
-}
-
 type Applications []Application
 
 func (a Applications) WithUpdates(project string) Applications {
@@ -82,10 +77,10 @@ func (a Applications) WithUpdates(project string) Applications {
 	return filtered
 }
 
-func (a Applications) WithSourceType(sourceType string, project string) Applications {
+func (a Applications) WithRepoType(repoType RepoType, project string) Applications {
 	filtered := Applications{}
 	for _, app := range a.ForProject(project) {
-		if app.SourceType == sourceType {
+		if app.RepoType == repoType {
 			filtered = append(filtered, app)
 		}
 	}
@@ -105,9 +100,10 @@ func (a Applications) ForProject(project string) Applications {
 type Application struct {
 	Name          string
 	Project       string
-	SourceType    string
+	RepoType      RepoType
 	RepoURL       string
 	Revision      string
+	Path          string
 	Chart         string
 	Version       string
 	NewestVersion string

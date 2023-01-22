@@ -86,7 +86,7 @@ func main() {
 		"NEWEST VERSION",
 	}, "\t"))
 
-	apps := cl.Applications().WithSourceType("Helm", project)
+	apps := cl.Applications().WithRepoType(types.RepoTypeHelm, project)
 	for _, app := range apps {
 		var version string
 		if app.NewestVersion != "" {
@@ -101,7 +101,7 @@ func main() {
 			healthStatus(app),
 			syncStatus(app),
 			autoSync(app),
-			app.SourceType,
+			string(app.RepoType),
 			app.Chart,
 			app.Revision,
 			version,
