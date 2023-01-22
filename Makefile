@@ -19,6 +19,8 @@ release: semver
 test-release:
 	goreleaser --skip-publish --snapshot --rm-dist
 
+
+
 ## toolbox - start
 ## Current working directory
 LOCALDIR ?= $(shell which cygpath > /dev/null 2>&1 && cygpath -m $$(pwd) || pwd)

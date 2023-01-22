@@ -1,7 +1,7 @@
 FROM golang:1.19 as builder
 
 WORKDIR /build
-
+# hadolint ignore=DL3008
 RUN apt-get update && apt-get install -y upx --no-install-recommends
 
 ARG VERSION=main
@@ -25,6 +25,7 @@ LABEL maintainer="bakito <github@bakito.ch>"
 EXPOSE 8080
 USER 1001
 ENTRYPOINT ["/go/bin/argocd-app-updates", "--server" ]
+# define default k8s argocd server address
 CMD ["--argo-server", "http://argocd-server:80"]
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/ca-certificates.crt
 COPY --from=builder /build/argocd-app-updates /go/bin/argocd-app-updates
