@@ -3,7 +3,7 @@ module github.com/bakito/argocd-app-updates
 go 1.19
 
 require (
-	github.com/fatih/color v1.14.0
+	github.com/fatih/color v1.14.1
 	github.com/gin-gonic/gin v1.8.2
 	github.com/go-resty/resty/v2 v2.7.0
 	github.com/juju/ansiterm v1.0.0
