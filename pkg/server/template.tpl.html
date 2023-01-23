@@ -34,9 +34,9 @@
         </style>
     </head>
     <body>
-        <div class="container-fluid">
+        <div class="container-fluid pt-3">
             {{- if not .apps }}
-            <div class="row" style="padding-top: 15px">
+            <div class="row pt-3">
                 <div class="col-sm-4"></div>
                 <div class="col-sm-4">
                     <div class="card h-100">
@@ -55,11 +55,9 @@
                 </div>
             </div>
             {{- end }}
+            <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-3">
             {{- range $i,$app := .apps }}
-            {{- if eq (mod $i 4) 0 }}
-            <div class="row" style="padding-top: 15px">
-             {{- end }}
-                <div class="col-sm-3">
+                <div class="col">
                     <div class="card h-100">
                         <div class="card-body">
                             <h5 class="card-title">
@@ -134,10 +132,8 @@
                         </div>
                     </div>
                 </div>
-            {{- if eq (mod $i 4) 3 }}
+            {{- end }}
             </div>
-            {{- end }}
-            {{- end }}
         </div>
     </body>
 </html>
