@@ -41,7 +41,6 @@ func Start(cl client.Client, port int) error {
 		c.HTML(http.StatusOK, "index", gin.H{
 			"apps":        cl.Applications().WithUpdates(c.Query("project")),
 			"updates":     true,
-			"url":         cl.URL(),
 			"titleSuffix": "Updates",
 		})
 	})
@@ -49,23 +48,25 @@ func Start(cl client.Client, port int) error {
 		apps := cl.Applications().ForProject(c.Query("project"))
 		c.HTML(http.StatusOK, "index", gin.H{
 			"apps":        apps,
-			"url":         cl.URL(),
 			"titleSuffix": "All",
 		})
 	})
 	r.GET("/helm", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "index", gin.H{
 			"apps":        cl.Applications().WithRepoType(types.RepoTypeHelm, c.Query("project")),
-			"url":         cl.URL(),
 			"titleSuffix": types.RepoTypeHelm,
 		})
 	})
 	r.GET("/git", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "index", gin.H{
 			"apps":        cl.Applications().WithRepoType(types.RepoTypeGit, c.Query("project")),
-			"url":         cl.URL(),
 			"titleSuffix": types.RepoTypeGit,
 		})
+	})
+	r.GET("/open/:app", func(c *gin.Context) {
+		app := c.Param("app")
+		redirect := fmt.Sprintf("%s/applications/argocd/%s?view=tree&resource=", cl.URL(), app)
+		c.Redirect(http.StatusTemporaryRedirect, redirect)
 	})
 
 	r.GET("/helm.png", func(c *gin.Context) {
