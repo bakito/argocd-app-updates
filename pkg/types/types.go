@@ -1,5 +1,7 @@
 package types
 
+import "golang.org/x/mod/semver"
+
 type RepoType string
 
 const (
@@ -24,6 +26,16 @@ func (c HelmChartsResponse) Chart(chart string) *HelmChartResponse {
 type HelmChartResponse struct {
 	Name     string   `json:"name"`
 	Versions []string `json:"versions"`
+}
+
+func (c HelmChartResponse) ReleasedVersions() []string {
+	var filtered []string
+	for _, v := range c.Versions {
+		if semver.Prerelease("v"+v) == "" {
+			filtered = append(filtered, v)
+		}
+	}
+	return filtered
 }
 
 type ApplicationResponse struct {

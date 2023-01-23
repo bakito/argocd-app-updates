@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"os"
 
 	"github.com/bakito/argocd-app-updates/pkg/client"
 	ss "github.com/bakito/argocd-app-updates/pkg/server"
@@ -11,6 +12,11 @@ import (
 	"github.com/bakito/argocd-app-updates/pkg/types"
 	"github.com/bakito/argocd-app-updates/version"
 	"github.com/robfig/cron/v3"
+)
+
+const (
+	envArgoUser     = "ARGOCD_USER"
+	envArgoPassword = "ARGOCD_PASSWORD"
 )
 
 func main() {
@@ -36,7 +42,7 @@ func main() {
 		return
 	}
 
-	cl := client.NewClient(argoURL)
+	cl := client.NewClient(argoURL, os.Getenv(envArgoUser), os.Getenv(envArgoPassword))
 	if err := cl.Update(); err != nil {
 		log.Fatal(err)
 	}

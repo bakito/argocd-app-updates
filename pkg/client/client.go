@@ -16,13 +16,21 @@ const (
 	urlApplications = apiV1 + "applications"
 	urlHelmCharts   = apiV1 + "repositories/%s/helmcharts"
 	urlSettings     = apiV1 + "settings"
+	urlSession      = apiV1 + "session"
 )
 
-func NewClient(argoServer string) Client {
-	return &client{
+func NewClient(argoServer string, username string, password string) Client {
+	cl := &client{
 		client: resty.New().SetBaseURL(argoServer),
 		url:    argoServer,
 	}
+	if username != "" && password != "" {
+		cl.auth = &sessionRequest{
+			Username: username,
+			Password: password,
+		}
+	}
+	return cl
 }
 
 type Client interface {
@@ -35,6 +43,8 @@ type client struct {
 	client *resty.Client
 	apps   types.Applications
 	url    string
+	auth   *sessionRequest
+	token  string
 }
 
 func (c *client) URL() string {
@@ -46,6 +56,14 @@ func (c *client) Applications() types.Applications {
 }
 
 func (c *client) Update() error {
+	if c.auth != nil {
+		var err error
+		c.token, err = c.login()
+		if err != nil {
+			return err
+		}
+	}
+
 	s, err := c.readSettings()
 	if err != nil {
 		return err
@@ -88,8 +106,8 @@ func (c *client) Update() error {
 			return err
 		}
 
-		if hc != nil && len(hc.Versions) != 0 {
-			if semver.Compare("v"+app.Spec.Source.TargetRevision, "v"+hc.Versions[0]) < 0 {
+		if hc != nil && len(hc.ReleasedVersions()) != 0 {
+			if semver.Compare("v"+app.Spec.Source.TargetRevision, "v"+hc.ReleasedVersions()[0]) < 0 {
 				myApp.LatestVersion = hc.Versions[0]
 			}
 		}
@@ -99,12 +117,17 @@ func (c *client) Update() error {
 	return nil
 }
 
-func (c *client) getHelmCharts(app types.ApplicationResponse, charts map[string]*types.HelmChartsResponse) (*types.HelmChartResponse, error) {
+func (c *client) getHelmCharts(app types.ApplicationResponse,
+	charts map[string]*types.HelmChartsResponse,
+) (*types.HelmChartResponse, error) {
 	if hc, ok := charts[app.Spec.Source.RepoURL]; ok {
 		return hc.Chart(app.Spec.Source.Chart), nil
 	}
 	hc := &types.HelmChartsResponse{}
-	_, err := c.client.R().SetResult(hc).Get(fmt.Sprintf(urlHelmCharts, url.QueryEscape(app.Spec.Source.RepoURL)))
+	_, err := c.client.R().
+		SetAuthToken(c.token).
+		SetResult(hc).
+		Get(fmt.Sprintf(urlHelmCharts, url.QueryEscape(app.Spec.Source.RepoURL)))
 	if err != nil {
 		return nil, err
 	}
@@ -114,7 +137,10 @@ func (c *client) getHelmCharts(app types.ApplicationResponse, charts map[string]
 
 func (c *client) readApplications() (*types.ApplicationListResponse, error) {
 	apps := &types.ApplicationListResponse{}
-	_, err := c.client.R().SetResult(apps).Get(urlApplications)
+	_, err := c.client.R().
+		SetAuthToken(c.token).
+		SetResult(apps).
+		Get(urlApplications)
 	sort.Slice(apps.Items, func(i, j int) bool {
 		return apps.Items[i].Metadata.Name < apps.Items[j].Metadata.Name
 	})
@@ -123,10 +149,29 @@ func (c *client) readApplications() (*types.ApplicationListResponse, error) {
 
 func (c *client) readSettings() (*settings, error) {
 	s := &settings{}
-	_, err := c.client.R().SetResult(s).Get(urlSettings)
+	_, err := c.client.R().
+		SetAuthToken(c.token).
+		SetResult(s).
+		Get(urlSettings)
 	return s, err
+}
+
+func (c *client) login() (string, error) {
+	s := &sessionResponse{}
+	_, err := c.client.R().
+		SetBody(c.auth).
+		SetResult(s).
+		Post(urlSession)
+	return s.Token, err
 }
 
 type settings struct {
 	URL string `json:"url"`
+}
+type sessionResponse struct {
+	Token string `json:"token"`
+}
+type sessionRequest struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
 }
