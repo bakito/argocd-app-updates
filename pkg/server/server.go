@@ -2,10 +2,12 @@ package server
 
 import (
 	_ "embed"
+	"encoding/base64"
 	"fmt"
 	"html/template"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 
 	"github.com/bakito/argocd-app-updates/pkg/client"
@@ -28,9 +30,15 @@ var (
 )
 
 func Start(cl client.Client, port int) error {
-	gin.SetMode(gin.ReleaseMode)
+	if !isDebug() {
+		gin.SetMode(gin.ReleaseMode)
+	}
 	r := gin.New()
 	r.Use(gin.Recovery())
+	if isDebug() {
+		r.Use(gin.Logger())
+	}
+
 	r.SetHTMLTemplate(template.Must(template.New("index").Funcs(map[string]any{
 		"mod":        func(a, b int) int { return a % b },
 		"lower":      func(val interface{}) string { return strings.ToLower(fmt.Sprintf("%v", val)) },
@@ -40,33 +48,31 @@ func Start(cl client.Client, port int) error {
 	r.GET("/", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "index", gin.H{
 			"apps":        cl.Applications().WithUpdates(c.Query("project")),
+			"url":         encodeBaseURL(cl),
 			"updates":     true,
 			"titleSuffix": "Updates",
 		})
 	})
 	r.GET("/all", func(c *gin.Context) {
-		apps := cl.Applications().ForProject(c.Query("project"))
 		c.HTML(http.StatusOK, "index", gin.H{
-			"apps":        apps,
+			"apps":        cl.Applications().ForProject(c.Query("project")),
+			"url":         encodeBaseURL(cl),
 			"titleSuffix": "All",
 		})
 	})
 	r.GET("/helm", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "index", gin.H{
 			"apps":        cl.Applications().WithRepoType(types.RepoTypeHelm, c.Query("project")),
+			"url":         encodeBaseURL(cl),
 			"titleSuffix": types.RepoTypeHelm,
 		})
 	})
 	r.GET("/git", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "index", gin.H{
 			"apps":        cl.Applications().WithRepoType(types.RepoTypeGit, c.Query("project")),
+			"url":         encodeBaseURL(cl),
 			"titleSuffix": types.RepoTypeGit,
 		})
-	})
-	r.GET("/open/:app", func(c *gin.Context) {
-		app := c.Param("app")
-		redirect := fmt.Sprintf("%s/applications/argocd/%s?view=tree&resource=", cl.URL(), app)
-		c.Redirect(http.StatusTemporaryRedirect, redirect)
 	})
 
 	r.GET("/helm.png", func(c *gin.Context) {
@@ -80,6 +86,14 @@ func Start(cl client.Client, port int) error {
 	})
 	log.Printf("Starting server on port %d", port)
 	return r.Run(fmt.Sprintf(":%d", port))
+}
+
+func encodeBaseURL(cl client.Client) string {
+	return base64.StdEncoding.EncodeToString([]byte(cl.URL()))
+}
+
+func isDebug() bool {
+	return os.Getenv("DEBUG") == "true"
 }
 
 func healthIcon(status string) string {

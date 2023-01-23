@@ -32,6 +32,20 @@
             }
 
         </style>
+        <script type="text/javascript">
+            window.onload = setupRefresh;
+            function setupRefresh() {
+                setTimeout("refreshPage();", 30_000); // milliseconds
+            }
+            function refreshPage() {
+                window.location = location.href;
+            }
+            function forward(app) {
+                // work-around to not have rancher service proxy mess with the target url it is base64 encoded
+                const encodedTargetURL = '{{ .url }}'
+                window.location = atob(encodedTargetURL) + '/applications/argocd/' + app + '?view=tree&resource=';
+            }
+        </script>
     </head>
     <body>
         <div class="container-fluid pt-3">
@@ -127,8 +141,7 @@
                                 {{- end }}
                             </div>
                             </p>
-                            <a href="open/{{ $app.Name }}"
-                               class="stretched-link"></a>
+                            <a onclick="forward('{{ $app.Name }}')" class="stretched-link"></a>
                         </div>
                     </div>
                 </div>
