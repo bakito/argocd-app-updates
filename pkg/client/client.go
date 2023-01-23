@@ -2,6 +2,7 @@ package client
 
 import (
 	"fmt"
+	"net/http"
 	"net/url"
 	"sort"
 	"strings"
@@ -99,18 +100,19 @@ func (c *client) Update() error {
 			myApp.RepoType = types.RepoTypeGit
 		} else {
 			myApp.RepoType = types.RepoTypeHelm
-		}
 
-		hc, err := c.getHelmCharts(app, charts)
-		if err != nil {
-			return err
-		}
+			hc, err := c.getHelmCharts(app, charts)
+			if err != nil {
+				return err
+			}
 
-		if hc != nil && len(hc.ReleasedVersions()) != 0 {
-			if semver.Compare("v"+app.Spec.Source.TargetRevision, "v"+hc.ReleasedVersions()[0]) < 0 {
-				myApp.LatestVersion = hc.Versions[0]
+			if hc != nil && len(hc.ReleasedVersions()) != 0 {
+				if semver.Compare("v"+app.Spec.Source.TargetRevision, "v"+hc.ReleasedVersions()[0]) < 0 {
+					myApp.LatestVersion = hc.Versions[0]
+				}
 			}
 		}
+
 		myApps = append(myApps, myApp)
 	}
 	c.apps = myApps
@@ -124,12 +126,15 @@ func (c *client) getHelmCharts(app types.ApplicationResponse,
 		return hc.Chart(app.Spec.Source.Chart), nil
 	}
 	hc := &types.HelmChartsResponse{}
-	_, err := c.client.R().
+	resp, err := c.client.R().
 		SetAuthToken(c.token).
 		SetResult(hc).
 		Get(fmt.Sprintf(urlHelmCharts, url.QueryEscape(app.Spec.Source.RepoURL)))
 	if err != nil {
 		return nil, err
+	}
+	if resp.StatusCode() != http.StatusOK {
+		return nil, fmt.Errorf("%s %s", resp.String(), resp.Request.URL)
 	}
 	charts[app.Spec.Source.RepoURL] = hc
 	return hc.Chart(app.Spec.Source.Chart), err
@@ -137,10 +142,16 @@ func (c *client) getHelmCharts(app types.ApplicationResponse,
 
 func (c *client) readApplications() (*types.ApplicationListResponse, error) {
 	apps := &types.ApplicationListResponse{}
-	_, err := c.client.R().
+	resp, err := c.client.R().
 		SetAuthToken(c.token).
 		SetResult(apps).
 		Get(urlApplications)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode() != http.StatusOK {
+		return nil, fmt.Errorf("%s %s", resp.String(), resp.Request.URL)
+	}
 	sort.Slice(apps.Items, func(i, j int) bool {
 		return apps.Items[i].Metadata.Name < apps.Items[j].Metadata.Name
 	})
@@ -149,19 +160,31 @@ func (c *client) readApplications() (*types.ApplicationListResponse, error) {
 
 func (c *client) readSettings() (*settings, error) {
 	s := &settings{}
-	_, err := c.client.R().
+	resp, err := c.client.R().
 		SetAuthToken(c.token).
 		SetResult(s).
 		Get(urlSettings)
+	if err != nil {
+		return nil, err
+	}
+	if resp.StatusCode() != http.StatusOK {
+		return nil, fmt.Errorf("%s %s", resp.String(), resp.Request.URL)
+	}
 	return s, err
 }
 
 func (c *client) login() (string, error) {
 	s := &sessionResponse{}
-	_, err := c.client.R().
+	resp, err := c.client.R().
 		SetBody(c.auth).
 		SetResult(s).
 		Post(urlSession)
+	if err != nil {
+		return "", err
+	}
+	if resp.StatusCode() != http.StatusOK {
+		return "", fmt.Errorf("%s %s", resp.String(), resp.Request.URL)
+	}
 	return s.Token, err
 }
 
