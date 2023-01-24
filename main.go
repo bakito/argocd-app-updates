@@ -25,6 +25,7 @@ func main() {
 		serverMode     bool
 		ver            bool
 		port           int
+		metricsPort    int
 		cronExpression string
 		project        string
 	)
@@ -33,6 +34,7 @@ func main() {
 	flag.BoolVar(&serverMode, "server", false, "run as server")
 	flag.BoolVar(&ver, "version", false, "Print the version")
 	flag.IntVar(&port, "port", 8080, "Server port")
+	flag.IntVar(&metricsPort, "metrics-port", 8081, "Metrics port")
 	flag.StringVar(&cronExpression, "cron", "*/15 * * * *", "The cron expression to sync the apps in server mode")
 	flag.StringVar(&project, "project", "", "Optional define the project to search applications in CLI mode")
 	flag.Parse()
@@ -66,5 +68,5 @@ func main() {
 		log.Fatal(err)
 	}
 
-	log.Fatal(ss.Start(cl, port))
+	log.Fatal(ss.Start(cl, port, metricsPort))
 }

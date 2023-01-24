@@ -9,6 +9,7 @@ import (
 
 	"github.com/bakito/argocd-app-updates/pkg/types"
 	"github.com/go-resty/resty/v2"
+	"github.com/prometheus/client_golang/prometheus"
 	"golang.org/x/mod/semver"
 )
 
@@ -21,10 +22,19 @@ const (
 )
 
 func NewClient(argoServer string, username string, password string) Client {
+	metric := prometheus.NewGaugeVec(prometheus.GaugeOpts{
+		Name: "argocd_app_update_available",
+		Help: "1 if an update is available for the argocd application",
+	}, []string{"project", "name", "current_version", "latest_version"},
+	)
+	prometheus.MustRegister(metric)
+
 	cl := &client{
 		client: resty.New().SetBaseURL(argoServer),
 		url:    argoServer,
+		metric: metric,
 	}
+
 	if username != "" && password != "" {
 		cl.auth = &sessionRequest{
 			Username: username,
@@ -46,6 +56,7 @@ type client struct {
 	url    string
 	auth   *sessionRequest
 	token  string
+	metric *prometheus.GaugeVec
 }
 
 func (c *client) URL() string {
@@ -112,8 +123,17 @@ func (c *client) Update() error {
 				}
 			}
 		}
-
 		myApps = append(myApps, myApp)
+	}
+	for _, app := range c.apps {
+		c.metric.DeleteLabelValues(app.Project, app.Name, app.Version, app.LatestVersion)
+	}
+	for _, app := range myApps {
+		var val float64
+		if app.LatestVersion != "" {
+			val = 1
+		}
+		c.metric.WithLabelValues(app.Project, app.Name, app.Version, app.LatestVersion).Set(val)
 	}
 	c.apps = myApps
 	return nil

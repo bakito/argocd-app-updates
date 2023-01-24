@@ -29,7 +29,7 @@ var (
 	favicon []byte
 )
 
-func Start(cl client.Client, port int) error {
+func Start(cl client.Client, port int, metricsPort int) error {
 	if !isDebug() {
 		gin.SetMode(gin.ReleaseMode)
 	}
@@ -38,6 +38,9 @@ func Start(cl client.Client, port int) error {
 	if isDebug() {
 		r.Use(gin.Logger())
 	}
+
+	metricRouter := gin.Default()
+	metricRouter.GET("/metrics", prometheusHandler())
 
 	r.SetHTMLTemplate(template.Must(template.New("index").Funcs(map[string]any{
 		"mod":        func(a, b int) int { return a % b },
@@ -84,6 +87,12 @@ func Start(cl client.Client, port int) error {
 	r.GET("/favicon.png", func(c *gin.Context) {
 		c.Data(http.StatusOK, "image/png", favicon)
 	})
+
+	go func() {
+		log.Printf("Starting metrics on port %d", metricsPort)
+		log.Fatal(metricRouter.Run(fmt.Sprintf(":%d", metricsPort)))
+	}()
+
 	log.Printf("Starting server on port %d", port)
 	return r.Run(fmt.Sprintf(":%d", port))
 }
