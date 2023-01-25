@@ -117,9 +117,12 @@ func (c *client) Update() error {
 				return err
 			}
 
-			if hc != nil && len(hc.ReleasedVersions()) != 0 {
-				if semver.Compare("v"+app.Spec.Source.TargetRevision, "v"+hc.ReleasedVersions()[0]) < 0 {
-					myApp.LatestVersion = hc.Versions[0]
+			if hc != nil {
+				rv := hc.ReleasedVersions()
+				if len(rv) != 0 {
+					if semver.Compare("v"+app.Spec.Source.TargetRevision, "v"+rv[0]) < 0 {
+						myApp.LatestVersion = rv[0]
+					}
 				}
 			}
 		}

@@ -31,7 +31,8 @@ type HelmChartResponse struct {
 func (c HelmChartResponse) ReleasedVersions() []string {
 	var filtered []string
 	for _, v := range c.Versions {
-		if semver.Prerelease("v"+v) == "" {
+		pr := semver.Prerelease("v" + v)
+		if pr == "" {
 			filtered = append(filtered, v)
 		}
 	}
