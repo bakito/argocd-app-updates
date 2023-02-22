@@ -19,8 +19,6 @@ release: semver
 test-release:
 	goreleaser --skip-publish --snapshot --rm-dist
 
-
-
 ## toolbox - start
 ## Current working directory
 LOCALDIR ?= $(shell which cygpath > /dev/null 2>&1 && cygpath -m $$(pwd) || pwd)
@@ -36,8 +34,8 @@ DEEPCOPY_GEN ?= $(LOCALBIN)/deepcopy-gen
 
 ## Tool Versions
 SEMVER_VERSION ?= v1.1.3
-GOLANGCI_LINT_VERSION ?= v1.50.1
-DEEPCOPY_GEN_VERSION ?= v0.26.0
+GOLANGCI_LINT_VERSION ?= v1.51.2
+DEEPCOPY_GEN_VERSION ?= v0.26.1
 
 ## Tool Installer
 .PHONY: semver

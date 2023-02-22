@@ -48,15 +48,21 @@ type Client interface {
 	Update() error
 	Applications() types.Applications
 	URL() string
+	Ready() bool
 }
 
 type client struct {
 	client *resty.Client
+	ready  bool
 	apps   types.Applications
 	url    string
 	auth   *sessionRequest
 	token  string
 	metric *prometheus.GaugeVec
+}
+
+func (c *client) Ready() bool {
+	return c.ready
 }
 
 func (c *client) URL() string {
@@ -139,6 +145,7 @@ func (c *client) Update() error {
 		c.metric.WithLabelValues(app.Project, app.Name, app.Version, app.LatestVersion).Set(val)
 	}
 	c.apps = myApps
+	c.ready = true
 	return nil
 }
 

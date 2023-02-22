@@ -77,6 +77,13 @@ func Start(cl client.Client, port int, metricsPort int) error {
 			"titleSuffix": types.RepoTypeGit,
 		})
 	})
+	r.GET("/health", func(c *gin.Context) {
+		if cl.Ready() {
+			c.JSON(http.StatusOK, map[string]string{"status": "OK"})
+		} else {
+			c.JSON(http.StatusServiceUnavailable, map[string]string{"status": "AppsNotUpdated"})
+		}
+	})
 
 	r.GET("/helm.png", func(c *gin.Context) {
 		c.Data(http.StatusOK, "image/png", iconHelm)
