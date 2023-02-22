@@ -42,6 +42,14 @@ func Start(cl client.Client, port int, metricsPort int) error {
 	metricRouter := gin.Default()
 	metricRouter.GET("/metrics", prometheusHandler())
 
+	metricRouter.GET("/health", func(c *gin.Context) {
+		if cl.Ready() {
+			c.JSON(http.StatusOK, map[string]string{"status": "OK"})
+		} else {
+			c.JSON(http.StatusServiceUnavailable, map[string]string{"status": "AppsNotUpdated"})
+		}
+	})
+
 	r.SetHTMLTemplate(template.Must(template.New("index").Funcs(map[string]any{
 		"mod":        func(a, b int) int { return a % b },
 		"lower":      func(val interface{}) string { return strings.ToLower(fmt.Sprintf("%v", val)) },
@@ -76,13 +84,6 @@ func Start(cl client.Client, port int, metricsPort int) error {
 			"url":         encodeBaseURL(cl),
 			"titleSuffix": types.RepoTypeGit,
 		})
-	})
-	r.GET("/health", func(c *gin.Context) {
-		if cl.Ready() {
-			c.JSON(http.StatusOK, map[string]string{"status": "OK"})
-		} else {
-			c.JSON(http.StatusServiceUnavailable, map[string]string{"status": "AppsNotUpdated"})
-		}
 	})
 
 	r.GET("/helm.png", func(c *gin.Context) {
