@@ -113,6 +113,12 @@ func (c *client) Update() error {
 			Automated:    app.Spec.SyncPolicy.Automated != nil,
 		}
 
+		if app.Spec.Destination.Name != "" {
+			myApp.Cluster = app.Spec.Destination.Name
+		} else {
+			myApp.Cluster = app.Spec.Destination.Server
+		}
+
 		if app.Spec.Source.Path != "" {
 			myApp.RepoType = types.RepoTypeGit
 		} else {

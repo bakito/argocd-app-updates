@@ -67,6 +67,5 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	log.Fatal(ss.Start(cl, port, metricsPort))
 }

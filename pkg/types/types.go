@@ -54,6 +54,7 @@ type ApplicationResponse struct {
 		Destination struct {
 			Namespace string `json:"namespace"`
 			Name      string `json:"name"`
+			Server    string `json:"server"`
 		} `json:"destination"`
 		Project    string `json:"project"`
 		SyncPolicy struct {
@@ -113,6 +114,7 @@ func (a Applications) ForProject(project string) Applications {
 type Application struct {
 	Name          string
 	Project       string
+	Cluster       string
 	RepoType      RepoType
 	RepoURL       string
 	Revision      string

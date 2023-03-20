@@ -24,6 +24,7 @@ func Render(apps types.Applications) {
 	_, _ = fmt.Fprintln(w, strings.Join([]string{
 		"PROJECT",
 		"NAME",
+		"Cluster",
 		"HEALTH STATUS",
 		"SYNC STATUS",
 		"AUTO SYNC",
@@ -43,6 +44,7 @@ func Render(apps types.Applications) {
 		_, _ = fmt.Fprintln(w, strings.Join([]string{
 			app.Project,
 			app.Name,
+			app.Cluster,
 			healthStatus(app),
 			syncStatus(app),
 			autoSync(app),
