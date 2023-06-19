@@ -9,7 +9,7 @@ require (
 	github.com/juju/ansiterm v1.0.0
 	github.com/prometheus/client_golang v1.15.1
 	github.com/robfig/cron/v3 v3.0.1
-	golang.org/x/mod v0.10.0
+	golang.org/x/mod v0.11.0
 )
 
 require (
