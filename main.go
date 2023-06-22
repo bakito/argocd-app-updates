@@ -17,6 +17,7 @@ import (
 const (
 	envArgoUser     = "ARGOCD_USER"
 	envArgoPassword = "ARGOCD_PASSWORD"
+	envArgoToken    = "ARGOCD_TOKEN" //#nosec G101 env var for token
 )
 
 func main() {
@@ -44,7 +45,7 @@ func main() {
 		return
 	}
 
-	cl := client.NewClient(argoURL, os.Getenv(envArgoUser), os.Getenv(envArgoPassword))
+	cl := client.NewClient(argoURL, os.Getenv(envArgoUser), os.Getenv(envArgoPassword), os.Getenv(envArgoToken))
 	if err := cl.Update(); err != nil {
 		log.Fatal(err)
 	}

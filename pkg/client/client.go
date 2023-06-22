@@ -21,7 +21,7 @@ const (
 	urlSession      = apiV1 + "session"
 )
 
-func NewClient(argoServer string, username string, password string) Client {
+func NewClient(argoServer string, username string, password string, token string) Client {
 	metric := prometheus.NewGaugeVec(prometheus.GaugeOpts{
 		Name: "argocd_app_update_available",
 		Help: "1 if an update is available for the argocd application",
@@ -33,9 +33,10 @@ func NewClient(argoServer string, username string, password string) Client {
 		client: resty.New().SetBaseURL(argoServer),
 		url:    argoServer,
 		metric: metric,
+		token:  token,
 	}
 
-	if username != "" && password != "" {
+	if token == "" && username != "" && password != "" {
 		cl.auth = &sessionRequest{
 			Username: username,
 			Password: password,
