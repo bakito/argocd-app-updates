@@ -4,7 +4,7 @@
         <link rel="stylesheet" href="https://bootswatch.com/5/darkly/bootstrap.min.css" crossorigin="anonymous">
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
         <link rel="icon" type="image/png" href="favicon.png" sizes="32x32"/>
-        <title>Argo CD Application - {{ .titleSuffix }}</title>
+        <title>{{- if .updates }}{{- if gt (.apps | len) 0 }}{{ .apps | len }}{{ "↑ " }}{{- else }}{{ "✓ " }}{{- end }}{{- end }}Argo CD Application - {{ .titleSuffix }}</title>
         <style>
             .colorDegraded {
                 color: rgb(233, 109, 118);
@@ -57,7 +57,7 @@
                         <div class="card-body">
                             {{- if .updates }}
                             <h5 class="card-title text-center colorHealthy">
-                                All Applications are up to date <i class="fa-solid fa-thumbs-up"></i>
+                                All Applications are up-to-date <i class="fa-solid fa-thumbs-up"></i>
                             </h5>
                             {{- else }}
                             <h5 class="card-title text-center colorOutOfSync">
