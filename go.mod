@@ -5,7 +5,7 @@ go 1.20
 require (
 	github.com/fatih/color v1.16.0
 	github.com/gin-gonic/gin v1.9.1
-	github.com/go-resty/resty/v2 v2.10.0
+	github.com/go-resty/resty/v2 v2.9.1
 	github.com/juju/ansiterm v1.0.0
 	github.com/prometheus/client_golang v1.17.0
 	github.com/robfig/cron/v3 v3.0.1
