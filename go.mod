@@ -3,7 +3,7 @@ module github.com/bakito/argocd-app-updates
 go 1.20
 
 require (
-	github.com/fatih/color v1.16.0
+	github.com/fatih/color v1.17.0
 	github.com/gin-gonic/gin v1.10.0
 	github.com/go-resty/resty/v2 v2.13.1
 	github.com/juju/ansiterm v1.0.0
