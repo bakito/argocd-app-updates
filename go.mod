@@ -7,7 +7,7 @@ require (
 	github.com/gin-gonic/gin v1.10.0
 	github.com/go-resty/resty/v2 v2.15.0
 	github.com/juju/ansiterm v1.0.0
-	github.com/prometheus/client_golang v1.20.3
+	github.com/prometheus/client_golang v1.20.4
 	github.com/robfig/cron/v3 v3.0.1
 	golang.org/x/mod v0.21.0
 )
